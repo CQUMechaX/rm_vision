@@ -24,10 +24,11 @@ struct ReceivePacket
 struct SendPacket
 {
   uint8_t header = 0xA5;
-  bool target_found : 1;
+  bool tracking : 1;
   bool target_color : 1;
   uint8_t task_mode : 2;
-  uint8_t digital : 4;
+  bool suggest_fire : 1;
+  uint8_t reserve : 3;
   float x;
   float y;
   float z;

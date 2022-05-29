@@ -134,7 +134,8 @@ void RMSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr 
 {
   try {
     SendPacket packet;
-    packet.target_found = msg->target_found;
+    packet.tracking = msg->tracking;
+    packet.suggest_fire = msg->suggest_fire;
     packet.target_color = present_color_ == 0;
     packet.task_mode = 0;
     packet.x = msg->position.x;
