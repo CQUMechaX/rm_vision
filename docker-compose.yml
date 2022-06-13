@@ -6,7 +6,9 @@ services:
     network_mode: "host"
     privileged: true
     command: /bin/bash -c "source /ros_ws/install/setup.bash && \
-      ros2 launch rm_vision_bringup vision_bringup.launch.py"
+      ros2 launch rm_vision_bringup vision_bringup.launch.py \
+      camera_type:=v4l2 \
+      use_serial:=false "
 
   debug:
     image: ghcr.io/chenjunnn/rm_vision

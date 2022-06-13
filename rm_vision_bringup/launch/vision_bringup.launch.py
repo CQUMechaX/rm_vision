@@ -3,9 +3,10 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command
+from launch.substitutions import Command, LaunchConfiguration, PythonExpression
 
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
@@ -14,6 +15,17 @@ import yaml
 
 
 def generate_launch_description():
+    camera_type = LaunchConfiguration('camera_type')
+    use_serial = LaunchConfiguration('use_serial')
+
+    declare_camera_type_cmd = DeclareLaunchArgument(
+        'camera_type',
+        default_value='v4l2')
+    declare_use_serial_cmd = DeclareLaunchArgument(
+        'use_serial',
+        default_value='true',
+        description='Whether use serial port')
+
     # params file path
     params_file = os.path.join(
         get_package_share_directory('rm_vision_bringup'), 'config', 'params.yaml')
@@ -29,28 +41,53 @@ def generate_launch_description():
     with open(params_file, 'r') as f:
         detector_params = yaml.safe_load(f)['/armor_detector']['ros__parameters']
 
-    camera_detector_container = ComposableNodeContainer(
+    detector_node = ComposableNode(
+        package='armor_detector',
+        plugin='rm_auto_aim::RgbDetectorNode',
+        name='armor_detector',
+        parameters=[detector_params, {'debug': False}],
+        extra_arguments=[{'use_intra_process_comms': True}]
+    )
+
+    v4l2_camera_detector_container = ComposableNodeContainer(
         name='camera_detector_container',
         namespace='',
         package='rclcpp_components',
         executable='component_container',
+        condition=IfCondition(PythonExpression(["'", camera_type, "'=='v4l2'"])),
         composable_node_descriptions=[
-                ComposableNode(
-                    package='mindvision_camera',
-                    plugin='mindvision_camera::MVCameraNode',
-                    name='camera_node',
-                    parameters=[camera_params, {
-                        'camera_info_url': camera_info_url,
-                        'use_sensor_data_qos': False,
-                    }],
-                    extra_arguments=[{'use_intra_process_comms': True}]),
+            ComposableNode(
+                package='v4l2_camera',
+                plugin='v4l2_camera::V4L2Camera',
+                name='camera_node',
+                parameters=[camera_params, {
+                    'camera_info_url': camera_info_url
+                }],
+                extra_arguments=[{'use_intra_process_comms': True}]
+            ),
+            detector_node
+        ],
+        output='screen',
+    )
 
-                ComposableNode(
-                    package='armor_detector',
-                    plugin='rm_auto_aim::RgbDetectorNode',
-                    name='armor_detector',
-                    parameters=[detector_params, {'debug': False}],
-                    extra_arguments=[{'use_intra_process_comms': True}])
+    mv_camera_detector_container = ComposableNodeContainer(
+        name='camera_detector_container',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container',
+        condition=IfCondition(PythonExpression(["'", camera_type, "'=='mindvision'"])),
+        composable_node_descriptions=[
+            ComposableNode(
+                package='mindvision_camera',
+                plugin='mindvision_camera::MVCameraNode',
+                name='camera_node',
+                parameters=[camera_params, {
+                        'camera_info_url': camera_info_url,
+                        'use_sensor_data_qos': True,
+                }],
+                extra_arguments=[{'use_intra_process_comms': True}]
+            ),
+            detector_node
         ],
         output='screen',
     )
@@ -63,12 +100,6 @@ def generate_launch_description():
         parameters=[params_file],
     )
 
-    rm_serial_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(
-                get_package_share_directory('rm_serial_driver'),
-                'launch', 'serial_driver.launch.py')))
-
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -76,9 +107,20 @@ def generate_launch_description():
                      'publish_frequency': 1000.0}]
     )
 
+    rm_serial_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('rm_serial_driver'),
+                'launch', 'serial_driver.launch.py')),
+        condition=IfCondition(use_serial))
+
     return LaunchDescription([
-        camera_detector_container,
+        declare_camera_type_cmd,
+        declare_use_serial_cmd,
+
+        v4l2_camera_detector_container,
+        mv_camera_detector_container,
         processor_node,
-        rm_serial_launch,
         robot_state_publisher,
+        rm_serial_launch,
     ])
