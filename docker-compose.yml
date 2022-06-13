@@ -1,0 +1,21 @@
+services:
+  runtime:
+    image: ghcr.io/chenjunnn/rm_vision
+    volumes:
+      - ws:/ros_ws
+    network_mode: "host"
+    privileged: true
+    command: /bin/bash -c "source /ros_ws/install/setup.bash && \
+      ros2 launch rm_vision_bringup vision_bringup.launch.py"
+
+  debug:
+    image: ghcr.io/chenjunnn/rm_vision
+    depends_on: 
+      - "runtime"
+    volumes:
+      - ws:/ros_ws
+    network_mode: "host"
+    command: tail -f /dev/null
+
+volumes:
+  ws:
