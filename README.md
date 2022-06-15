@@ -7,13 +7,7 @@
 
 1. [安装 Docker 并登录 ghcr.io](https://github.com/chenjunnn/rm_vision/wiki/安装-Docker-并登录-ghcr.io)
 
-2. 拉取镜像
-    
-    ```sh
-    docker pull ghcr.io/chenjunnn/rm_vision
-    ```
-
-3. 启动容器
+2. 启动容器
 
     下载 [docker-compose.yml](https://github.com/chenjunnn/rm_vision/releases) 并运行
 
