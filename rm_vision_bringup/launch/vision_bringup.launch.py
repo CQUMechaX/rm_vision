@@ -20,16 +20,15 @@ def generate_launch_description():
 
     declare_camera_type_cmd = DeclareLaunchArgument(
         'camera_type',
-        default_value='v4l2')
+        default_value='usb')
     declare_use_serial_cmd = DeclareLaunchArgument(
         'use_serial',
-        default_value='true',
+        default_value='False',
         description='Whether use serial port')
 
     # params file path
     params_file = os.path.join(
         get_package_share_directory('rm_vision_bringup'), 'config', 'params.yaml')
-    camera_info_url = 'package://rm_vision_bringup/config/camera_info.yaml'
 
     # robot_description
     robot_description = Command(['xacro ', os.path.join(
@@ -45,24 +44,22 @@ def generate_launch_description():
         package='armor_detector',
         plugin='rm_auto_aim::RgbDetectorNode',
         name='armor_detector',
-        parameters=[detector_params, {'debug': False}],
+        parameters=[detector_params, {'debug': True}],
         extra_arguments=[{'use_intra_process_comms': True}]
     )
 
-    v4l2_camera_detector_container = ComposableNodeContainer(
+    usb_camera_detector_container = ComposableNodeContainer(
         name='camera_detector_container',
         namespace='',
         package='rclcpp_components',
         executable='component_container',
-        condition=IfCondition(PythonExpression(["'", camera_type, "'=='v4l2'"])),
+        condition=IfCondition(PythonExpression(["'", camera_type, "'=='usb'"])),
         composable_node_descriptions=[
             ComposableNode(
-                package='v4l2_camera',
-                plugin='v4l2_camera::V4L2Camera',
+                package='usb_cam',
+                plugin='usb_cam::UsbCamNode',
                 name='camera_node',
-                parameters=[camera_params, {
-                    'camera_info_url': camera_info_url
-                }],
+                parameters=[camera_params],
                 extra_arguments=[{'use_intra_process_comms': True}]
             ),
             detector_node
@@ -81,10 +78,7 @@ def generate_launch_description():
                 package='mindvision_camera',
                 plugin='mindvision_camera::MVCameraNode',
                 name='camera_node',
-                parameters=[camera_params, {
-                        'camera_info_url': camera_info_url,
-                        'use_sensor_data_qos': True,
-                }],
+                parameters=[camera_params, {'use_sensor_data_qos': True}],
                 extra_arguments=[{'use_intra_process_comms': True}]
             ),
             detector_node
@@ -112,15 +106,24 @@ def generate_launch_description():
             os.path.join(
                 get_package_share_directory('rm_serial_driver'),
                 'launch', 'serial_driver.launch.py')),
-        condition=IfCondition(use_serial))
+        condition=IfCondition(use_serial)
+    )
+
+    joint_state_publisher = Node(
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        parameters=[{'rate': 600}],
+        condition=IfCondition(PythonExpression(["not ", use_serial]))
+    )
 
     return LaunchDescription([
         declare_camera_type_cmd,
         declare_use_serial_cmd,
 
-        v4l2_camera_detector_container,
+        usb_camera_detector_container,
         mv_camera_detector_container,
         processor_node,
         robot_state_publisher,
         rm_serial_launch,
+        joint_state_publisher,
     ])

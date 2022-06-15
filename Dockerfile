@@ -4,7 +4,7 @@ FROM ros:galactic-ros-base
 RUN apt-get update && apt dist-upgrade -y && \
     apt-get install -y wget vim htop \
     ros-galactic-xacro ros-galactic-camera-info-manager ros-galactic-rosbridge-server \
-    ros-galactic-joint-state-publisher ros-galactic-compressed-image-transport ros-galactic-v4l2-camera && \
+    ros-galactic-joint-state-publisher ros-galactic-compressed-image-transport ros-galactic-usb-cam && \
     rm -rf /var/lib/apt/lists/*
 
 # setup zsh
@@ -33,7 +33,6 @@ RUN apt-get update && \
 # build source
 RUN . /opt/ros/galactic/setup.sh && colcon build --symlink-install
 
-# copy scripts
+# setup scripts
 COPY scripts scripts
-
 RUN cat scripts/zshrc >> /root/.zshrc && rm -r scripts
