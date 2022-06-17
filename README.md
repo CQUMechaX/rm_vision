@@ -7,10 +7,10 @@
 
 1. [安装 Docker 并登录 ghcr.io](https://github.com/chenjunnn/rm_vision/wiki/安装-Docker-并登录-ghcr.io)
 
-2. 启动容器
-
-    下载 [docker-compose.yml](https://github.com/chenjunnn/rm_vision/releases) 并运行
+2. 下载 [docker-compose.yml](https://github.com/chenjunnn/rm_vision/releases) 并运行
 
     ```sh
     docker compose up
     ```
+
+3. [开启可视化界面](https://github.com/chenjunnn/rm_vision/wiki/开启可视化界面)
