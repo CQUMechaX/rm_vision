@@ -19,9 +19,6 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
 RUN mkdir -p /ros_ws/src
 WORKDIR /ros_ws/
 
-# clone camera pkg
-RUN cd src && git clone https://github.com/chenjunnn/ros2_mindvision_camera
-
 # copy source code
 COPY . src/rm_vision
 

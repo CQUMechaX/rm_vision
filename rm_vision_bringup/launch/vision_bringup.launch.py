@@ -20,7 +20,8 @@ def generate_launch_description():
 
     declare_camera_type_cmd = DeclareLaunchArgument(
         'camera_type',
-        default_value='usb')
+        default_value='usb',
+        description='Available camera types: usb, mv, hik')
     declare_use_serial_cmd = DeclareLaunchArgument(
         'use_serial',
         default_value='False',
@@ -67,12 +68,31 @@ def generate_launch_description():
         output='screen',
     )
 
+    hik_camera_detector_container = ComposableNodeContainer(
+        name='camera_detector_container',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container',
+        condition=IfCondition(PythonExpression(["'", camera_type, "'=='hik'"])),
+        composable_node_descriptions=[
+            ComposableNode(
+                package='hik_camera',
+                plugin='hik_camera::HikCameraNode',
+                name='camera_node',
+                parameters=[camera_params, {'use_sensor_data_qos': True}],
+                extra_arguments=[{'use_intra_process_comms': True}]
+            ),
+            detector_node
+        ],
+        output='screen',
+    )
+
     mv_camera_detector_container = ComposableNodeContainer(
         name='camera_detector_container',
         namespace='',
         package='rclcpp_components',
         executable='component_container',
-        condition=IfCondition(PythonExpression(["'", camera_type, "'=='mindvision'"])),
+        condition=IfCondition(PythonExpression(["'", camera_type, "'=='mv'"])),
         composable_node_descriptions=[
             ComposableNode(
                 package='mindvision_camera',
@@ -122,6 +142,7 @@ def generate_launch_description():
 
         usb_camera_detector_container,
         mv_camera_detector_container,
+        hik_camera_detector_container,
         processor_node,
         robot_state_publisher,
         rm_serial_launch,
