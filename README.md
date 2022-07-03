@@ -7,9 +7,7 @@
 
 1. [安装 Docker 并登录 ghcr.io](https://github.com/chenjunnn/rm_vision/wiki/安装-Docker-并登录-ghcr.io)
 
-2. 下载 [compose.yml](https://github.com/chenjunnn/rm_vision/releases)
-
-    修改 compose.yml 中的参数后，启动容器
+2. 下载 [compose.yml](https://github.com/chenjunnn/rm_vision/releases) 并修改参数
 
     ```sh
     docker compose up
