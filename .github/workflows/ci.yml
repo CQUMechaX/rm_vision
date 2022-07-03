@@ -7,22 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  colcon-build-and-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup ROS 2
-        uses: ros-tooling/setup-ros@v0.2
-        with:
-          required-ros-distributions: galactic
-
-      - name: Build rm_serial_driver and run tests
-        uses: ros-tooling/action-ros-ci@v0.2
-        with:
-          package-name: rm_serial_driver
-          target-ros2-distro: galactic
-
   docker-build-and-push:
-    needs: colcon-build-and-test
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
