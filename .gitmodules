@@ -1,3 +1,9 @@
 [submodule "rm_auto_aim"]
 	path = rm_auto_aim
 	url = https://github.com/chenjunnn/rm_auto_aim.git
+[submodule "ros2_hik_camera"]
+	path = ros2_hik_camera
+	url = https://github.com/chenjunnn/ros2_hik_camera.git
+[submodule "ros2_mindvision_camera"]
+	path = ros2_mindvision_camera
+	url = https://github.com/chenjunnn/ros2_mindvision_camera.git
